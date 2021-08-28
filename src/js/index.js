@@ -11,9 +11,10 @@ import "../styles/index.scss";
 //import your own components
 import { SecondsCounter } from "./component/SecondsCounter";
 
-let intervalo = setInterval(counterIncrement, 1000);
+let intervalo = setInterval(counterClock, 1000);
 
 let counter = 0;
+let incrementCheck = true;
 
 const styleButtons = {
 	background: "black",
@@ -33,8 +34,11 @@ function renderContent() {
 		<>
 			<SecondsCounter counter={counter} />
 			<div style={containerStyle}>
+				<button onClick={restartCountUp} style={styleButtons}>
+					Restart CountUp
+				</button>
 				<button onClick={restartInterval} style={styleButtons}>
-					Resume Increment
+					Resume
 				</button>
 				<button onClick={stopInterval} style={styleButtons}>
 					Stop
@@ -54,19 +58,32 @@ function renderContent() {
 	);
 }
 
-function counterIncrement() {
-	renderContent();
-	counter++;
+function restartCountUp() {
+	clearInterval(intervalo);
+	incrementCheck = true;
+	counter = 0;
+	intervalo = setInterval(counterClock, 1000);
 }
-
-function counterDecrement() {
-	counter--;
-	renderContent();
+function counterClock() {
+	if (incrementCheck) {
+		renderContent();
+		counter++;
+	} else {
+		counter--;
+		renderContent();
+	}
 }
 
 function restartInterval() {
-	clearInterval(intervalo);
-	intervalo = setInterval(counterIncrement, 1000);
+	if (counter === 0) {
+		incrementCheck = true;
+		intervalo = setInterval(counterClock, 1000);
+	} else if (incrementCheck) {
+		clearInterval(intervalo);
+		intervalo = setInterval(counterClock, 1000);
+	} else {
+		intervalo = setInterval(checkCounter, 1000);
+	}
 }
 
 function stopInterval() {
@@ -74,18 +91,20 @@ function stopInterval() {
 }
 
 function countDown(event) {
+	incrementCheck = false;
 	stopInterval();
 	event.preventDefault();
 	let inputValue = Number(event.target.inputCountdown.value);
 	if (inputValue != false) {
 		counter = Number(event.target.inputCountdown.value) + 1;
+		event.target.inputCountdown.value = "";
 	}
 	intervalo = setInterval(checkCounter, 1000);
 }
 
 function checkCounter() {
 	if (counter > 0) {
-		counterDecrement();
+		counterClock();
 	} else {
 		clearInterval(intervalo);
 		alert("Time reached!");
